@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Amazon Review Predictor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+
+    /* Background */
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: "Inter", sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b 70%);
+      color: #f9fafb;
+      overflow: hidden;
+    }
+
+    /* Floating background orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(250,204,21,0.2), transparent 70%);
+      filter: blur(60px);
+      animation: float 12s infinite ease-in-out alternate;
+      z-index: 0;
+    }
+    .orb1 { width: 200px; height: 200px; top: 10%; left: 15%; animation-delay: 0s;}
+    .orb2 { width: 300px; height: 300px; bottom: 5%; right: 15%; animation-delay: 4s;}
+    @keyframes float {
+      from { transform: translateY(0px) }
+      to { transform: translateY(-40px) }
+    }
+
+    /* Card */
+    .card {
+      width: 430px;
+      background: rgba(30, 41, 59, 0.85);
+      padding: 42px 36px;
+      border-radius: 22px;
+      backdrop-filter: blur(14px) saturate(150%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.65);
+      text-align: center;
+      animation: fadeIn 1.2s ease;
+      position: relative;
+      z-index: 1;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      width: 72px;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 6px 14px rgba(255, 200, 80, 0.85));
+      transition: transform 0.4s ease;
+    }
+    .logo:hover {
+      transform: rotate(-8deg) scale(1.08);
+    }
+
+    h1 {
+      font-size: 1.95em;
+      font-weight: 700;
+      margin: 6px 0 14px;
+      background: linear-gradient(90deg, #facc15, #fde047);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+    p.subtitle {
+      font-size: 1em;
+      margin-bottom: 30px;
+      color: #cbd5e1;
+    }
+
+    /* Input */
+    textarea {
+      width: 100%;
+      min-height: 105px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1.8px solid transparent;
+      font-size: 1em;
+      resize: none;
+      outline: none;
+      color: #e5e7eb;
+      background: rgba(255, 255, 255, 0.05);
+      transition: all 0.35s ease;
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.25);
+    }
+    textarea:focus {
+      border: 1.8px solid #facc15;
+      box-shadow: 0 0 18px #facc1588, inset 0 0 14px rgba(0,0,0,0.25);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Button */
+    button {
+      margin-top: 22px;
+      width: 100%;
+      padding: 15px 20px;
+      font-size: 1.07em;
+      font-weight: 600;
+      color: #111;
+      background: linear-gradient(135deg, #facc15, #fde047);
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.35s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #fde047, #facc15);
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 22px rgba(250, 204, 21, 0.35);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Stars */
+    .stars {
+      margin-top: 28px;
+      font-size: 2.9em;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .star {
+      color: #facc15;
+      opacity: 0;
+      transform: scale(0.3);
+      animation: bounceIn 0.55s forwards;
+    }
+    @keyframes bounceIn {
+      0% { opacity: 0; transform: scale(0.3) rotate(-20deg);}
+      60% { opacity: 1; transform: scale(1.3) rotate(5deg);}
+      100% { transform: scale(1) rotate(0);}
+    }
+    .star-empty {
+      color: #475569;
+    }
+
+    /* Messages */
+    .result-message {
+      margin-top: 18px;
+      font-size: 1.15em;
+      font-weight: 600;
+      min-height: 28px;
+      color: #facc15;
+    }
+    .result-message.error {
+      color: #f87171;
+    }
+
+    /* Loader */
+    .loader {
+      margin: 16px auto;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #facc15;
+      animation: bounce 0.6s infinite alternate;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating Orbs -->
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+
+  <div class="card">
+    <img class="logo" src="https://img.icons8.com/color/96/amazon.png" alt="Amazon logo" />
+    <h1>Review Predictor</h1>
+    <p class="subtitle">Turn your thoughts into ⭐ stars instantly!</p>
+
+    <textarea id="review-input" placeholder="Type your product review here..."></textarea>
+    <button id="predict-button">✨ Predict Rating</button>
+
+    <div id="loader" class="loader" style="display:none;">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+
+    <div class="result-message" id="result-message"></div>
+    <div id="star-output" class="stars"></div>
+  </div>
+
+  <script>
+    const button = document.getElementById("predict-button");
+    const reviewInput = document.getElementById("review-input");
+    const starOutput = document.getElementById("star-output");
+    const resultMessage = document.getElementById("result-message");
+    const loader = document.getElementById("loader");
+
+    function displayStars(score) {
+      starOutput.innerHTML = "";
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement("span");
+        star.classList.add(i <= score ? "star" : "star-empty");
+        star.innerHTML = "★";
+        if (i <= score) {
+          star.style.animationDelay = `${i * 0.16}s`;
+        }
+        starOutput.appendChild(star);
+      }
+    }
+
+    button.onclick = async function () {
+      const text = reviewInput.value.trim();
+      starOutput.innerHTML = "";
+      resultMessage.textContent = "";
+      if (!text) {
+        resultMessage.textContent = "⚠️ Please enter your review first.";
+        resultMessage.classList.add("error");
+        return;
+      }
+
+      button.disabled = true;
+      loader.style.display = "flex";
+      resultMessage.textContent = "";
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ review: text }),
+        });
+
+        const result = await response.json();
+        let score = result.score;
+        if (typeof score !== "number" || score < 1 || score > 5)
+          throw new Error("Invalid score");
+
+        loader.style.display = "none";
+        displayStars(score);
+        resultMessage.textContent = `Predicted rating: ${score} ⭐`;
+        resultMessage.classList.remove("error");
+      } catch (err) {
+        loader.style.display = "none";
+        resultMessage.textContent = "❌ Unable to predict. Try again!";
+        resultMessage.classList.add("error");
+      }
+      button.disabled = false;
+    };
+  </script>
+</body>
+</html>
