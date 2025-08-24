@@ -3,7 +3,7 @@ import pickle
 import traceback
 
 # Initialize Flask
-app = Flask(__name__, template_folder="website")
+app = Flask(__name__)
 
 # Load Vectorizer
 with open("model/vectorizer.pkl", "rb") as f:
